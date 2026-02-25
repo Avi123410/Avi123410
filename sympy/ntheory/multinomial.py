@@ -4,7 +4,7 @@ from typing import Iterator, SupportsIndex
 from sympy.utilities.misc import as_int
 
 
-def binomial_coefficients(n: SupportsIndex) -> dict[tuple[int, int], int]:
+def binomial_coefficients(n: SupportsIndex) -> dict[tuple[int, ...], int]:
 
     """Return a dictionary containing pairs :math:`{(k1,k2) : C_kn}` where
     :math:`C_kn` are binomial coefficients and :math:`n=k1+k2`.
