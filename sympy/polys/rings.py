@@ -2280,32 +2280,33 @@ class PolyElement(
         return p
 
     def _pow_multinomial(self, n: int) -> PolyElement[Er]:
-        multinomials = multinomial_coefficients(len(self), n).items()
-        monomial_mulpow = self.ring.monomial_mulpow
-        zero_monom = self.ring.zero_monom
-        terms = self.items()
-        zero = self.ring.domain.zero
-        poly = self.ring.zero
+    multinomials = multinomial_coefficients(len(self), n).items()
+    monomial_mulpow = self.ring.monomial_mulpow
+    zero_monom = self.ring.zero_monom
+    terms = self.items()
+    zero = self.ring.domain.zero
+    poly = self.ring.zero
 
-        for multinomial, multinomial_coeff in multinomials:
-            product_monom = zero_monom
-            product_coeff = multinomial_coeff
+    for multinomial, multinomial_coeff in multinomials:
+        product_monom = zero_monom
+        # Ensure product_coeff is of type Er, not int!
+        product_coeff: Er = self.ring.domain.convert(multinomial_coeff)
 
-            for exp, (monom, coeff) in zip(multinomial, terms):
-                if exp:
-                    product_monom = monomial_mulpow(product_monom, monom, exp)
-                    product_coeff *= coeff**exp
+        for exp, (monom, coeff) in zip(multinomial, terms):
+            if exp:
+                product_monom = monomial_mulpow(product_monom, monom, exp)
+                # coeff**exp is likely Er, so product_coeff remains Er
+                product_coeff = product_coeff * (coeff ** exp)
 
-            monom = tuple(product_monom)
-            coeff = product_coeff
+        monom = tuple(product_monom)
+        # poly.get(monom, zero) is Er, product_coeff is Er, so their sum is Er
+        coeff: Er = poly.get(monom, zero) + product_coeff
 
-            coeff = poly.get(monom, zero) + coeff
-
-            if coeff:
-                poly[monom] = coeff
-            elif monom in poly:
-                del poly[monom]
-        return poly
+        if coeff:
+            poly[monom] = coeff
+        elif monom in poly:
+            del poly[monom]
+    return poly
 
     def _square(self) -> PolyElement[Er]:
         ring = self.ring
